@@ -1,0 +1,32 @@
+version: '3'
+
+services:
+  mongo:
+    image: mongo
+    ports:
+      - "27017:27017"
+    networks:
+      - mynetwork
+
+  info:
+    build:
+      context: ./info
+    ports:
+      - "3003:3003"
+    networks:
+      - mynetwork
+    depends_on:
+      - mongo
+
+  mymovies:
+    build:
+      context: ./mymovies
+    ports:
+      - "3001:3001"
+    networks:
+      - mynetwork
+    depends_on:
+      - mongo
+
+networks:
+  mynetwork:
