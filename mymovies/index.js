@@ -1,29 +1,35 @@
 const express = require('express');
-const mongoose = require('mongoose');
+const { MongoClient } = require('mongodb');
+
 const app = express();
-const PORT = process.env.PORT || 3001;
 
-// Conectar con MongoDB
-mongoose.connect('mongodb://mongodb:27017/movies', { useNewUrlParser: true, useUnifiedTopology: true });
+const mongoUrl = 'mongodb://mongo_db:27017';
+const dbName = 'my_movies';
 
-// Definir un modelo de película
-const movieSchema = new mongoose.Schema({
-  title: String,
-  year: Number,
-});
+app.set('port', 3001);
 
-const Movie = mongoose.model('Movie', movieSchema);
 
-app.get('/', async (req, res) => {
+app.get('/favmovies', async (req, res) => {
   try {
-    const movies = await Movie.find();
-    res.json(movies);
+    const client = new MongoClient(mongoUrl, { useUnifiedTopology: true });
+    await client.connect();
+    console.log('Connected to MongoDB');
+    
+    const db = client.db(dbName);
+    const collection = db.collection('my_movies');
+    // Obtener 7 IDs de películas favoritas de la colección de MongoDB
+    const allMovies = await collection.find({}).toArray();
+
+    // Extraer los IDs de películas y convertirlos a enteros
+    const ids = allMovies.map(doc => parseInt(doc.id));
+
+    // Devolver el resultado como
+    res.json({ ids });
   } catch (error) {
-    console.error('Error al obtener mis películas:', error.message);
-    res.status(500).json({ error: 'Error interno del servidor' });
+    res.status(500).json({ error: `Error retrieving random movie IDs: ${error.message}` });
   }
 });
 
-app.listen(PORT, () => {
-  console.log(`MyMovies Microservice escuchando en el puerto ${PORT}`);
+app.listen(app.get('port'), () => {
+  console.log(`Server is running on port ${app.get('port')}`);
 });

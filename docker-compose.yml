@@ -1,32 +1,43 @@
 version: '3'
 
 services:
-  mongo:
-    image: mongo
+  mongo_db:
+    container_name: mongodb
+    build:
+      context: ./mongodb
+      dockerfile: Dockerfile
     ports:
       - "27017:27017"
-    networks:
-      - mynetwork
 
   info:
     build:
       context: ./info
     ports:
       - "3003:3003"
-    networks:
-      - mynetwork
     depends_on:
-      - mongo
+      - mongo_db
+
+  random:
+    build:
+      context: ./random
+    ports:
+      - "3002:3002"
+    depends_on:
+      - mymovies
+      - info
+
+  movies:
+    build:
+      context: ./movies
+    ports:
+      - "3000:3000"
+    depends_on:
+      - random
 
   mymovies:
     build:
       context: ./mymovies
     ports:
       - "3001:3001"
-    networks:
-      - mynetwork
     depends_on:
-      - mongo
-
-networks:
-  mynetwork:
+      - mongo_db
